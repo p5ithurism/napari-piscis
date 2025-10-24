@@ -1,0 +1,10 @@
+name: napari-piscis
+display_name: Piscis
+contributions:
+  commands:
+    - id: napari-piscis.show_inference
+      title: "Piscis: Inference"
+      python_name: napari_piscis._widget:make_inference_widget
+  widgets:
+    - command: napari-piscis.show_inference
+      display_name: "Piscis Inference"
