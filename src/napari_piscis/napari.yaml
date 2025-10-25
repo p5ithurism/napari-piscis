@@ -2,9 +2,9 @@ name: napari-piscis
 display_name: Piscis
 contributions:
   commands:
-    - id: napari-piscis.show_inference
+    - id: napari-piscis.inference
       title: "Piscis: Inference"
-      python_name: napari_piscis._widget:make_inference_widget
+      python_name: napari_piscis._widget:piscis_inference
   widgets:
-    - command: napari-piscis.show_inference
+    - command: napari-piscis.inference
       display_name: "Piscis Inference"
