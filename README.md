@@ -1,9 +1,5 @@
 # napari-piscis
 
-[![License MIT](https://img.shields.io/pypi/l/napari-piscis.svg?color=green)](https://github.com/p5ithurism/napari-piscis/raw/main/LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/napari-piscis.svg?color=green)](https://pypi.org/project/napari-piscis)
-[![Python Version](https://img.shields.io/pypi/pyversions/napari-piscis.svg?color=green)](https://python.org)
-[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-piscis)](https://napari-hub.org/plugins/napari-piscis)
 [![npe2](https://img.shields.io/badge/plugin-npe2-blue?link=https://napari.org/stable/plugins/index.html)](https://napari.org/stable/plugins/index.html)
 
 The napari plugin for [Piscis](https://github.com/zjniu/Piscis), a deep learning algorithm for spot detection.
