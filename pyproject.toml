@@ -30,3 +30,12 @@ napari_piscis = ["napari.yaml"]
 
 [tool.pytest.ini_options]
 addopts = "-q"
+
+[dependency-groups]
+dev = [
+  "pytest",
+  "pytest-cov",
+  "pytest-qt",
+  "loguru",
+  "napari[qt]",
+]
