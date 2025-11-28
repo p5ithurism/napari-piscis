@@ -183,6 +183,7 @@ def _display_features(viewer: napari.Viewer, features: Any, is_3d_stack: bool, l
 @magic_factory(
     call_button="Run PISCIS",
     layout="vertical",
+    image_layer={"label": "Select Input"},
     model_name={"label": "Model Name", "choices": ["20230905"]},
     threshold={"label": "Threshold", "min": 0.0, "max": 1.0, "step": 0.1, "value": 1.0, "tooltip": "Minimum pixels for a spot."},
     min_distance={"label": "Min Distance", "min": 0, "max": 20, "step": 1, "value": 1},
@@ -239,7 +240,7 @@ def piscis_inference(
                 np.array(coords_pred),
                 name=f"Spots ({image_layer.name})",
                 size=3,
-                face_color='green',
+                face_color='lime',
                 symbol='disc',
             )
             show_info(f"PISCIS: Detected {len(coords_pred)} spots.")

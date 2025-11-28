@@ -149,17 +149,15 @@ def test_display_features_2d_adds_expected_images():
     feats = np.random.rand(4, 5, 5)
     w._display_features(viewer, feats, is_3d_stack=False, layer_name=layer_name)
 
-    # We expect 5 images:
-    #  - Magnitude (TestLayer)
+    # We expect 4 images:
     #  - Disp Y (TestLayer)
     #  - Disp X (TestLayer)
     #  - Labels (TestLayer)
     #  - Pooled Labels (TestLayer)
-    assert len(viewer.images) == 5
+    assert len(viewer.images) == 4
 
     names = {img["name"] for img in viewer.images}
     expected_names = {
-        f"Magnitude ({layer_name})",
         f"Disp Y ({layer_name})",
         f"Disp X ({layer_name})",
         f"Labels ({layer_name})",
@@ -171,9 +169,3 @@ def test_display_features_2d_adds_expected_images():
 
     # All images should be invisible by default
     assert all(img["visible"] is False for img in viewer.images)
-
-    # Check that magnitude has the right shape and values
-    mag_entry = next(img for img in viewer.images if "Magnitude" in img["name"])
-    expected_mag = np.linalg.norm(feats[0:2], axis=0)
-    np.testing.assert_allclose(mag_entry["data"], expected_mag, rtol=1e-6, atol=1e-6)
-
