@@ -68,6 +68,7 @@ napari_piscis = ["napari.yaml"]
 [tool.setuptools_scm]
 write_to = "src/napari_piscis/_version.py"
 fallback_version = "0.0.1+nogit"
+local_scheme = "no-local-version"
 
 
 [tool.pytest.ini_options]
