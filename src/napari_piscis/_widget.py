@@ -146,9 +146,7 @@ def _display_features(viewer: napari.Viewer, features: Any, is_3d_stack: bool, l
             if feats.shape[0] >= 2:
                 disp_y = features_np[:, 0, :, :]
                 disp_x = features_np[:, 1, :, :]
-                mag = np.linalg.norm(feats[:, 0:2, :, :], axis=1)
                 
-                viewer.add_image(mag, name=f"Magnitude ({layer_name})", visible=False)
                 viewer.add_image(disp_y, name=f"Disp Y ({layer_name})", visible=False)
                 viewer.add_image(disp_x, name=f"Disp X ({layer_name})", visible=False)
 
@@ -166,9 +164,7 @@ def _display_features(viewer: napari.Viewer, features: Any, is_3d_stack: bool, l
                 feats = features_np
             
             if feats.shape[0] >= 2:
-                mag = np.linalg.norm(feats[0:2], axis=0)
                 
-                viewer.add_image(mag, name=f"Magnitude ({layer_name})", visible=False)
                 viewer.add_image(feats[0], name=f"Disp Y ({layer_name})", visible=False)
                 viewer.add_image(feats[1], name=f"Disp X ({layer_name})", visible=False)
 
@@ -243,7 +239,7 @@ def piscis_inference(
                 np.array(coords_pred),
                 name=f"Spots ({image_layer.name})",
                 size=3,
-                face_color='blue',
+                face_color='green',
                 symbol='disc',
             )
             show_info(f"PISCIS: Detected {len(coords_pred)} spots.")
