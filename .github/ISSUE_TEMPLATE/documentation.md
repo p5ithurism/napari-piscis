@@ -1,5 +1,5 @@
 ---
-name: "\U0001F4DA Documentation"
+name: "Documentation"
 about: Report an issue with piscis-ufish documentation
 title: ''
 labels: documentation
@@ -7,5 +7,5 @@ assignees: ''
 
 ---
 
-## 📚 Documentation
+## Documentation
 <!-- A clear and concise description of the documentation that needs to be created/updated -->

@@ -1,4 +1,4 @@
-name: "\U0001F41B Bug Report"
+name: "Bug Report"
 description: Report a bug encountered while using piscis-ufish
 labels:
   - "bug"
@@ -14,7 +14,7 @@ body:
   - type: textarea
     id: bug-report
     attributes:
-      label: "\U0001F41B Bug Report"
+      label: "Bug Report"
       description: "Please provide a clear and concise description of the bug."
       placeholder: "What went wrong? What did you expect to happen?"
     validations:
@@ -23,7 +23,7 @@ body:
   - type: textarea
     id: steps-to-reproduce
     attributes:
-      label: "\U0001F4A1 Steps to Reproduce"
+      label: "Steps to Reproduce"
       description: "Please provide a minimal code snippet or list of steps to reproduce the bug."
       placeholder: |
         1. Go to '...'
@@ -36,14 +36,14 @@ body:
   - type: textarea
     id: expected-behavior
     attributes:
-      label: "\U0001F4A1 Expected Behavior"
+      label: "Expected Behavior"
       description: "Please provide a clear and concise description of what you expected to happen."
       placeholder: "What did you expect to happen?"
 
   - type: textarea
     id: environment
     attributes:
-      label: "\U0001F30E Environment"
+      label: "Environment"
       description: |
         Please provide detailed information regarding your environment. Please paste the output of `napari --info` here or copy  the information from the "napari info" dialog in the napari Help menu.
 
@@ -82,6 +82,6 @@ body:
   - type: textarea
     id: additional-context
     attributes:
-        label: "\U0001F4A1 Additional Context"
+        label: "Additional Context"
         description: "Please provide any additional information or context regarding the problem here."
         placeholder: "Add any other context about the problem here."
