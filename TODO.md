@@ -1,0 +1,7 @@
+- [ ] **Widget:** add models to be selected in UI, allow custom model selection
+- [ ] **Widget:** add tooltips
+- [ ] **Widget:** allow user to specify axis order if 'infer_img_axes' is incorrect
+- [ ] **Widget:** show color image conversion warning *before* starting the worker thread
+- [ ] **Testing:** add tests running inference on 2D, 3D, color images
+- [ ] **Documentation:** add screenshot(s) to README
+- [ ] **PyPI:** check requirements
