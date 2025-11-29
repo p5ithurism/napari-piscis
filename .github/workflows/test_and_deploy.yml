@@ -32,6 +32,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup python
         uses: astral-sh/setup-uv@v7
@@ -64,28 +66,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-      - name: Set up Python
-        uses: actions/setup-python@v5
         with:
-          python-version: "3.x" # Use a compatible Python version
-      - name: Install build dependencies
-        run: pip install build
-      - name: Build sdist and wheel
-        run: |
-          echo "--- Git Status before build ---"
-          git status
-          echo "--- Git Log HEAD before build ---"
-          git log -1 --decorate
-          echo "--- Git Describe Tags before build ---"
-          git describe --tags
-          echo "--- Setuptools_SCM Version check ---"
-          python -c "from setuptools_scm import get_version; print(get_version(root='.', relative_to=__file__))"
-          python -m build --sdist --wheel .
-      - name: Upload packages as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Packages
-          path: dist/
+          fetch-depth: 0
+      - uses: hynek/build-and-inspect-python-package@v2
 
   deploy:
     # this will run when you have tagged a commit, starting with "v*"
