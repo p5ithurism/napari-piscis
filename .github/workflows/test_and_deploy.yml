@@ -68,6 +68,16 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      - name: Debug Git and Setuptools_SCM
+        run: |
+          echo "--- Git Status ---"
+          git status
+          echo "--- Git Log (last 10 commits) ---"
+          git log --oneline -n 10
+          echo "--- Git Tags ---"
+          git tag -l
+          echo "--- Setuptools_SCM Version ---"
+          python -c "from setuptools_scm import get_version; print(get_version())"
       - uses: hynek/build-and-inspect-python-package@v2
 
   deploy:
