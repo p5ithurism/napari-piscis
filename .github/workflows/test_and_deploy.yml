@@ -71,7 +71,16 @@ jobs:
       - name: Install build dependencies
         run: pip install build
       - name: Build sdist and wheel
-        run: python -m build --sdist --wheel .
+        run: |
+          echo "--- Git Status before build ---"
+          git status
+          echo "--- Git Log HEAD before build ---"
+          git log -1 --decorate
+          echo "--- Git Describe Tags before build ---"
+          git describe --tags
+          echo "--- Setuptools_SCM Version check ---"
+          python -c "from setuptools_scm import get_version; print(get_version(root='.', relative_to=__file__))"
+          python -m build --sdist --wheel .
       - name: Upload packages as artifact
         uses: actions/upload-artifact@v4
         with:
