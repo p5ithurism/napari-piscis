@@ -29,7 +29,8 @@ dependencies = [
   "numpy",
   "scikit-image",
   "piscis>=0.2.7",
-  "jax>=0.7,<0.8",
+  "jax",
+  "loguru",
 ]
 
 [project.optional-dependencies]

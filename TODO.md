@@ -4,4 +4,7 @@
 - [ ] **Widget:** show color image conversion warning *before* starting the worker thread
 - [ ] **Testing:** add tests running inference on 2D, 3D, color images
 - [ ] **Documentation:** add screenshot(s) to README
+- [ ] **Documentation:** update README
 - [ ] **PyPI:** check requirements
+- [ ] fix test-and-deploy workflow
+-
