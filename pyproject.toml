@@ -67,7 +67,8 @@ napari_piscis = ["napari.yaml"]
 
 [tool.setuptools_scm]
 write_to = "src/napari_piscis/_version.py"
-fallback_version = "0.0.1+nogit"
+tag_regex = "^v(?P<version>\\d+\\.\\d+\\.\\d+)$"
+version_scheme = "no-guess-dev"
 local_scheme = "no-local-version"
 
 
