@@ -102,13 +102,17 @@ jobs:
       - name: Install build backend + setuptools_scm
         run: python -m pip install --upgrade build setuptools setuptools_scm
 
-      - name: Show setuptools_scm version for sanity
-        run: python -m setuptools_scm
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Show version we will use
+        run: echo "Using version ${{ steps.version.outputs.version }}"
 
       - name: Build package
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.version.outputs.version }}
         run: python -m build
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
