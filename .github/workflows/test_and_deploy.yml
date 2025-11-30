@@ -83,7 +83,7 @@ jobs:
       - uses: hynek/build-and-inspect-python-package@v2
 
   deploy:
-    needs: [test, build-and-inspect-package]
+    needs: [test]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
@@ -99,8 +99,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install build backend
-        run: python -m pip install --upgrade build
+      - name: Install build backend + setuptools_scm
+        run: python -m pip install --upgrade build setuptools setuptools_scm
 
       - name: Show setuptools_scm version for sanity
         run: python -m setuptools_scm
@@ -110,3 +110,5 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
