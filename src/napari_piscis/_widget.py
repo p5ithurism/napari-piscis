@@ -77,7 +77,7 @@ def run_inference_logic(
             raise ValueError(f"Unsupported 3D axis pattern: {axes}")
     else:
         if axes == 'yx':
-            images_batch = np.expand_dims(raw_image, axis=0)
+            images_batch = raw_image
         elif axes == 'yxc':
             gray_img = rgb2gray(raw_image)
             images_batch = gray_img 
