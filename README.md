@@ -8,11 +8,7 @@
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-piscis)](https://napari-hub.org/plugins/napari-piscis)
 [![npe2](https://img.shields.io/badge/plugin-npe2-blue?link=https://napari.org/stable/plugins/index.html)](https://napari.org/stable/plugins/index.html)
 
-Unofficial napari plugin for [Piscis](https://github.com/zjniu/Piscis), a deep learning algorithm for spot detection.
-
-----------------------------------
-
-This [napari] plugin was based off of the [napari-plugin-template].
+Unofficial [napari] plugin for [Piscis](https://github.com/zjniu/Piscis), a deep learning algorithm for spot detection.
 
 ## Installation
 
@@ -21,7 +17,12 @@ You can install `napari-piscis` via [pip]:
 ```
 pip install napari-piscis
 ```
+Or within the napari GUI via the Plugin Manager.
 
+To install latest development version:
+```
+pip install git+https://github.com/p5ithurism/napari-piscis.git
+```
 ## Contributing
 
 Contributions are very welcome. Tests can be run with [tox], please ensure
