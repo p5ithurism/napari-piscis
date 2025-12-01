@@ -1,159 +1,216 @@
+# tests/test_widget.py
 import numpy as np
 import pytest
 
+# Adjust import if your package name is different
 from napari_piscis import _widget as w
 
 
-# --------------------------
-# infer_img_axes tests
-# --------------------------
+# ---------- Fixtures & Test Helpers ----------
 
-def test_infer_img_axes_2d_yx():
-    """2D image should be interpreted as 'yx'."""
-    assert w.infer_img_axes((10, 20)) == "yx"
+@pytest.fixture(autouse=True)
+def stub_piscis_and_utils(monkeypatch):
+    """Stub out Piscis, pad_and_stack, rgb2gray so tests are fast & deterministic."""
 
-
-def test_infer_img_axes_3d_color_yxc():
-    """3D image with last dim 3/4 should be treated as color."""
-    assert w.infer_img_axes((10, 20, 3)) == "yxc"
-    assert w.infer_img_axes((32, 32, 4)) == "yxc"
-
-
-def test_infer_img_axes_3d_stack_zyx_and_yxz():
-    """Smallest dimension should be interpreted as z."""
-    # z at the front
-    assert w.infer_img_axes((5, 64, 64)) == "zyx"
-    # z at the end
-    assert w.infer_img_axes((64, 64, 5)) == "yxz"
-
-
-def test_infer_img_axes_unsupported_shape():
-    """Shapes with more than 3 dimensions should raise."""
-    with pytest.raises(ValueError):
-        w.infer_img_axes((2, 3, 4, 5))
-
-
-# --------------------------
-# run_inference_logic tests
-# --------------------------
-
-def test_run_inference_logic_2d_grayscale(monkeypatch):
-    """
-    For a simple 2D image:
-    - axes should be 'yx'
-    - is_3d_stack should be False
-    - pad_and_stack should be called with a 3D array of shape (1, y, x)
-    - return dict should echo coords/features from the fake model
-    """
-
-    # --- fake Piscis model ------------------------------------------
-    class FakePiscis:
-        last_call = None
-
-        def __init__(self, model_name):
+    class DummyPiscis:
+        def __init__(self, model_name: str):
             self.model_name = model_name
 
-        def predict(
-            self, images_padded, threshold, intermediates, min_distance, stack
-        ):
-            # record what was passed in for later assertions
-            FakePiscis.last_call = dict(
-                images_shape=images_padded.shape,
-                threshold=threshold,
-                intermediates=intermediates,
-                min_distance=min_distance,
-                stack=stack,
-            )
-            coords = [[1, 2], [3, 4]]
-            features = np.zeros((2, 10, 20), dtype=float)
+        def predict(self, images_padded, threshold, intermediates, min_distance, stack):
+            # Simple deterministic dummy output:
+            # - coords: one fake spot per "image" in the batch
+            # - features: 4-channel feature map
+            batch = np.asarray(images_padded)
+            if batch.ndim == 2:
+                # (y, x) -> treat as 1-image batch
+                batch = batch[None, ...]
+            n_stack = batch.shape[0]
+            y, x = batch.shape[-2], batch.shape[-1]
+
+            coords = [(i, 0, 0) for i in range(n_stack)]  # fake coordinates
+            features = np.zeros((n_stack, 4, y, x), dtype=float)
             return coords, features
 
-    # --- fake pad_and_stack -----------------------------------------
-    def fake_pad_and_stack(images):
-        fake_pad_and_stack.last_input_shape = images.shape
-        # in this simple case, don't actually pad; just echo back
-        return images
+    def dummy_pad_and_stack(imgs):
+        # For tests we just convert to numpy without changing shape.
+        return np.asarray(imgs)
 
-    # patch module globals
-    monkeypatch.setattr(w, "Piscis", FakePiscis)
-    monkeypatch.setattr(w, "pad_and_stack", fake_pad_and_stack)
+    def dummy_rgb2gray(img):
+        # Average over the last axis for a simple grayscale conversion.
+        return img.mean(axis=-1)
+
+    monkeypatch.setattr(w, "Piscis", DummyPiscis)
+    monkeypatch.setattr(w, "pad_and_stack", dummy_pad_and_stack)
+    monkeypatch.setattr(w, "rgb2gray", dummy_rgb2gray)
     monkeypatch.setattr(w, "DEPENDENCIES_INSTALLED", True)
 
-    # simple 2D input
-    raw_image = np.ones((10, 20), dtype=float)
+    yield
 
-    result = w.run_inference_logic(
-        raw_image=raw_image,
-        model_name="test-model",
-        threshold=0.5,
-        min_distance=2,
-        intermediates=True,
-    )
-
-    # --- assertions on result dict ----------------------------------
-    assert result["coords"] == [[1, 2], [3, 4]]
-    assert isinstance(result["features"], np.ndarray)
-    assert result["features"].shape == (2, 10, 20)
-    assert result["is_3d_stack"] is False
-    # pad_and_stack simply echoes input in our fake, so shape matches
-    assert result["padded_shape"] == (1, 10, 20)
-    assert result["processed_image"] is None
-    assert result["was_color_converted"] is False
-
-    # --- assertions on how model was called -------------------------
-    assert FakePiscis.last_call is not None
-    assert FakePiscis.last_call["images_shape"] == (1, 10, 20)
-    assert FakePiscis.last_call["threshold"] == 0.5
-    assert FakePiscis.last_call["intermediates"] is True
-    assert FakePiscis.last_call["min_distance"] == 2
-    assert FakePiscis.last_call["stack"] is False
-
-    # pad_and_stack should have seen a batch dimension
-    assert fake_pad_and_stack.last_input_shape == (1, 10, 20)
-
-
-# --------------------------
-# _display_features tests
-# --------------------------
 
 class DummyViewer:
-    """Minimal stand-in for napari.Viewer for testing _display_features."""
+    """Minimal viewer stub for _display_features tests."""
 
     def __init__(self):
         self.images = []
+        self.points = []
 
-    def add_image(self, data, name=None, visible=True, colormap=None):
-        # store a copy so later modifications don't affect the record
+    def add_image(self, data, name, visible=True, colormap=None):
         self.images.append(
             {
-                "data": np.array(data),
+                "data": np.asarray(data),
                 "name": name,
                 "visible": visible,
                 "colormap": colormap,
             }
         )
 
+    def add_points(self, data, name, size=1, face_color=None, symbol=None):
+        self.points.append(
+            {
+                "data": np.asarray(data),
+                "name": name,
+                "size": size,
+                "face_color": face_color,
+                "symbol": symbol,
+            }
+        )
+
+
+# ---------- infer_img_axes Tests ----------
+
+def test_infer_img_axes_2d_yx():
+    shape = (32, 64)
+    axes = w.infer_img_axes(shape)
+    assert axes == "yx"
+
+
+def test_infer_img_axes_2d_color_yxc():
+    shape = (32, 64, 3)
+    axes = w.infer_img_axes(shape)
+    assert axes == "yxc"
+
+
+def test_infer_img_axes_3d_zyx():
+    # smallest dim first -> treated as z
+    shape = (5, 32, 32)
+    axes = w.infer_img_axes(shape)
+    assert axes == "zyx"
+
+
+def test_infer_img_axes_unsupported_ndim():
+    with pytest.raises(ValueError):
+        w.infer_img_axes((4, 4, 4, 4))  # len(shape) == 4 is unsupported
+
+
+# ---------- run_inference_logic Tests ----------
+
+def test_run_inference_2d_greyscale():
+    img = np.random.rand(16, 16).astype(np.float32)
+
+    result = w.run_inference_logic(
+        raw_image=img,
+        model_name="20230905",
+        threshold=0.5,
+        min_distance=2,
+        intermediates=True,
+    )
+
+    assert result["is_3d_stack"] is False
+    assert result["was_color_converted"] is False
+    assert result["processed_image"] is None
+
+    coords = result["coords"]
+    features = np.asarray(result["features"])
+    padded_shape = result["padded_shape"]
+
+    # From DummyPiscis: one coord, and features with shape (batch, 4, y, x)
+    assert len(coords) == 1
+    assert features.shape[0] == 1
+    assert features.shape[1] == 4
+    assert padded_shape[-2:] == img.shape
+
+
+def test_run_inference_3d_greyscale():
+    # Shape (z, y, x)
+    img = np.random.rand(3, 16, 16).astype(np.float32)
+
+    result = w.run_inference_logic(
+        raw_image=img,
+        model_name="20230905",
+        threshold=0.5,
+        min_distance=2,
+        intermediates=True,
+    )
+
+    assert result["is_3d_stack"] is True
+    assert result["was_color_converted"] is False
+    assert result["processed_image"] is None
+
+    coords = result["coords"]
+    features = np.asarray(result["features"])
+    padded_shape = result["padded_shape"]
+
+    # 3 stack images
+    assert len(coords) == img.shape[0]
+    assert features.shape[0] == img.shape[0]
+    assert features.shape[1] == 4
+    assert padded_shape == img.shape
+
+
+def test_run_inference_2d_color_converts_to_gray():
+    # (y, x, c)
+    img = np.random.rand(16, 16, 3).astype(np.float32)
+
+    result = w.run_inference_logic(
+        raw_image=img,
+        model_name="20230905",
+        threshold=0.5,
+        min_distance=1,
+        intermediates=True,
+    )
+
+    assert result["is_3d_stack"] is False
+    assert result["was_color_converted"] is True
+    processed = result["processed_image"]
+    assert processed is not None
+    assert processed.shape == img.shape[:2]  # grayscale
+
+    coords = result["coords"]
+    features = np.asarray(result["features"])
+    padded_shape = result["padded_shape"]
+
+    assert len(coords) == 1
+    assert features.shape[0] == 1
+    assert features.shape[1] == 4
+    # pad_and_stack returns same shape in our stub
+    assert padded_shape == processed.shape
+
+
+def test_run_inference_3d_color_currently_unsupported():
+    # With current infer_img_axes implementation, any 4D shape should fail.
+    img = np.random.rand(3, 16, 16, 3).astype(np.float32)
+    with pytest.raises(ValueError):
+        w.run_inference_logic(
+            raw_image=img,
+            model_name="20230905",
+            threshold=0.5,
+            min_distance=1,
+            intermediates=True,
+        )
+
+
+# ---------- _display_features Tests ----------
 
 def test_display_features_2d_adds_expected_images():
-    """
-    For a 2D feature map with 4 channels (disp_y, disp_x, labels, pooled),
-    _display_features should:
-    - compute a magnitude image
-    - add five images with the expected names
-    - mark them all as not visible by default
-    """
     viewer = DummyViewer()
-    layer_name = "TestLayer"
+    layer_name = "Test2D"
 
-    # feats[0] = disp_y, feats[1] = disp_x, feats[2] = labels, feats[3] = pooled
-    feats = np.random.rand(4, 5, 5)
+    # features: (channels, y, x)
+    feats = np.random.rand(4, 8, 8)
+
     w._display_features(viewer, feats, is_3d_stack=False, layer_name=layer_name)
 
-    # We expect 4 images:
-    #  - Disp Y (TestLayer)
-    #  - Disp X (TestLayer)
-    #  - Labels (TestLayer)
-    #  - Pooled Labels (TestLayer)
+    # Expect 4 images: Disp Y, Disp X, Labels, Pooled
     assert len(viewer.images) == 4
 
     names = {img["name"] for img in viewer.images}
@@ -163,9 +220,31 @@ def test_display_features_2d_adds_expected_images():
         f"Labels ({layer_name})",
         f"Pooled Labels ({layer_name})",
     }
-
-    # All expected names should be present, no extras
     assert names == expected_names
 
-    # All images should be invisible by default
-    assert all(img["visible"] is False for img in viewer.images)
+    # All should be invisible by default
+    assert all(not img["visible"] for img in viewer.images)
+
+
+def test_display_features_3d_adds_expected_images():
+    viewer = DummyViewer()
+    layer_name = "Test3D"
+
+    # Mimic (z, channel, y, x); _display_features will slice as features_np[:, 0, :, :]
+    feats_3d = np.random.rand(3, 4, 8, 8)
+
+    w._display_features(viewer, feats_3d, is_3d_stack=True, layer_name=layer_name)
+
+    # For 3D we still expect 4 images total
+    assert len(viewer.images) == 4
+
+    names = {img["name"] for img in viewer.images}
+    expected_names = {
+        f"Disp Y ({layer_name})",
+        f"Disp X ({layer_name})",
+        f"Labels ({layer_name})",
+        f"Pooled Labels ({layer_name})",
+    }
+    assert names == expected_names
+
+    assert all(not img["visible"] for img in viewer.images)

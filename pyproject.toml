@@ -48,6 +48,7 @@ dev = [
   "pytest-qt",
   "napari[qt]",
   "loguru",
+  "numpy",
 ]
 
 
